@@ -1,8 +1,4 @@
-use crate::{
-    error::CuResult,
-    ffi,
-    stream::CuStream,
-};
+use crate::{error::CuResult, ffi, stream::CuStream};
 use std::sync::Arc;
 
 struct CUevent(ffi::CUevent);
@@ -23,9 +19,7 @@ pub struct CuEvent(Inner);
 impl CuEvent {
     pub fn new() -> CuResult<Self> {
         let mut e = std::ptr::null_mut();
-        let res = unsafe {
-            ffi::cuEventCreate(&mut e, ffi::CUevent_flags_enum_CU_EVENT_DEFAULT)
-        };
+        let res = unsafe { ffi::cuEventCreate(&mut e, ffi::CUevent_flags_enum_CU_EVENT_DEFAULT) };
         let e = CuEvent(Inner::Owned(Arc::new(CUevent(e))));
 
         wrap!(e, res)
@@ -36,9 +30,7 @@ impl CuEvent {
     }
 
     pub fn record(&self, stream: &CuStream) -> CuResult<()> {
-        let res = unsafe {
-            ffi::cuEventRecord(self.get_raw(), stream.get_raw())
-        };
+        let res = unsafe { ffi::cuEventRecord(self.get_raw(), stream.get_raw()) };
 
         wrap!((), res)
     }
@@ -46,7 +38,9 @@ impl CuEvent {
     pub fn query(&self) -> CuResult<bool> {
         let res = unsafe { ffi::cuEventQuery(self.get_raw()) };
 
-        if res == ffi::cudaError_enum_CUDA_SUCCESS || res == ffi::cudaError_enum_CUDA_ERROR_NOT_READY {
+        if res == ffi::cudaError_enum_CUDA_SUCCESS
+            || res == ffi::cudaError_enum_CUDA_ERROR_NOT_READY
+        {
             Ok(res == ffi::cudaError_enum_CUDA_SUCCESS)
         } else {
             wrap!(false, res)
@@ -65,9 +59,7 @@ impl CuEvent {
             let start_e = start.get_raw();
             let end_e = self.get_raw();
 
-            ffi::cuEventElapsedTime_v2(
-                &mut ms as *mut f32, start_e, end_e
-            )
+            ffi::cuEventElapsedTime(&mut ms as *mut f32, start_e, end_e)
         };
 
         wrap!(ms, res)

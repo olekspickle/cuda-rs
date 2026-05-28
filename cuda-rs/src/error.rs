@@ -1,6 +1,6 @@
 use crate::ffi;
-use thiserror::Error;
 use num_traits::FromPrimitive;
+use thiserror::Error;
 
 enum_from_primitive! {
     #[derive(Error, Debug, PartialEq)]

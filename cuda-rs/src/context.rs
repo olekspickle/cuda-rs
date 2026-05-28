@@ -1,8 +1,4 @@
-use crate::{
-    device::CuDevice,
-    error::CuResult,
-    ffi,
-};
+use crate::{device::CuDevice, error::CuResult, ffi};
 use std::sync::Arc;
 
 struct CUcontext(ffi::CUcontext);
@@ -23,9 +19,8 @@ pub struct CuContext(Inner);
 impl CuContext {
     pub fn new(device: &CuDevice) -> CuResult<Self> {
         let mut ctx = std::ptr::null_mut();
-        let res = unsafe {
-            ffi::cuCtxCreate_v4(&mut ctx, std::ptr::null_mut(), 0, device.get_raw())
-        };
+        let res =
+            unsafe { ffi::cuCtxCreate_v4(&mut ctx, std::ptr::null_mut(), 0, device.get_raw()) };
         let ctx = CuContext(Inner::Owned(Arc::new(CUcontext(ctx))));
 
         wrap!(ctx, res)
@@ -37,9 +32,7 @@ impl CuContext {
 
     pub fn retain_primary_context(device: &CuDevice) -> CuResult<Self> {
         let mut ctx = std::ptr::null_mut();
-        let res = unsafe {
-            ffi::cuDevicePrimaryCtxRetain(&mut ctx, device.get_raw())
-        };
+        let res = unsafe { ffi::cuDevicePrimaryCtxRetain(&mut ctx, device.get_raw()) };
         let ctx = CuContext(Inner::Borrowed(ctx));
 
         wrap!(ctx, res)
@@ -70,9 +63,7 @@ impl CuContext {
     }
 
     pub fn pop() -> CuResult<()> {
-        let res = unsafe {
-            ffi::cuCtxPopCurrent_v2(&mut std::ptr::null_mut())
-        };
+        let res = unsafe { ffi::cuCtxPopCurrent_v2(&mut std::ptr::null_mut()) };
 
         wrap!((), res)
     }

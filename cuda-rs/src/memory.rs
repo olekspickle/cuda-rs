@@ -1,4 +1,8 @@
-use crate::{ffi, stream::CuStream, error::{CuResult, CuError}};
+use crate::{
+    error::{CuError, CuResult},
+    ffi,
+    stream::CuStream,
+};
 use std::ffi::c_void;
 
 pub struct HostMemory {
@@ -9,9 +13,7 @@ pub struct HostMemory {
 impl HostMemory {
     pub fn new(size: usize) -> CuResult<Self> {
         let mut ptr = std::ptr::null_mut();
-        let res = unsafe {
-            ffi::cuMemAllocHost_v2(&mut ptr, size)
-        };
+        let res = unsafe { ffi::cuMemAllocHost_v2(&mut ptr, size) };
 
         wrap!(Self { ptr, size }, res)
     }
@@ -35,17 +37,13 @@ impl HostMemory {
     }
 
     pub fn copy_to_raw(&self, dst: *mut c_void, size: usize) -> CuResult<()> {
-        let res = unsafe {
-            ffi::cuMemcpy(dst as _, self.ptr as _, size)
-        };
+        let res = unsafe { ffi::cuMemcpy(dst as _, self.ptr as _, size) };
 
         wrap!((), res)
     }
 
     pub fn copy_from_raw(&self, src: *const c_void, size: usize) -> CuResult<()> {
-        let res = unsafe {
-            ffi::cuMemcpy(self.ptr as _, src as _, size)
-        };
+        let res = unsafe { ffi::cuMemcpy(self.ptr as _, src as _, size) };
 
         wrap!((), res)
     }
@@ -77,17 +75,24 @@ pub struct DeviceMemory {
 impl DeviceMemory {
     pub fn new(size: usize, stream: &CuStream) -> CuResult<Self> {
         let mut ptr: ffi::CUdeviceptr = 0;
-        let res = unsafe {
-            ffi::cuMemAllocAsync(
-                &mut ptr, size, stream.get_raw()
-            )
-        };
+        let res = unsafe { ffi::cuMemAllocAsync(&mut ptr, size, stream.get_raw()) };
 
-        wrap!(Self { ptr, size, stream: stream.clone() }, res)
+        wrap!(
+            Self {
+                ptr,
+                size,
+                stream: stream.clone()
+            },
+            res
+        )
     }
 
     pub unsafe fn from_raw(ptr: ffi::CUdeviceptr, size: usize, stream: &CuStream) -> Self {
-        Self { ptr, size, stream: stream.clone() }
+        Self {
+            ptr,
+            size,
+            stream: stream.clone(),
+        }
     }
 
     pub unsafe fn get_raw(&self) -> ffi::CUdeviceptr {
@@ -101,14 +106,8 @@ impl DeviceMemory {
         stream: Option<&CuStream>,
     ) -> CuResult<()> {
         let res = unsafe {
-            let stream = stream
-                .map_or(self.stream.get_raw(), |s| s.get_raw());
-            ffi::cuMemcpyAsync(
-                dst,
-                self.ptr,
-                size,
-                stream,
-            )
+            let stream = stream.map_or(self.stream.get_raw(), |s| s.get_raw());
+            ffi::cuMemcpyAsync(dst, self.ptr, size, stream)
         };
 
         wrap!((), res)
@@ -121,14 +120,8 @@ impl DeviceMemory {
         stream: Option<&CuStream>,
     ) -> CuResult<()> {
         let res = unsafe {
-            let stream = stream
-                .map_or(self.stream.get_raw(), |s| s.get_raw());
-            ffi::cuMemcpyAsync(
-                self.ptr,
-                src,
-                size,
-                stream,
-            )
+            let stream = stream.map_or(self.stream.get_raw(), |s| s.get_raw());
+            ffi::cuMemcpyAsync(self.ptr, src, size, stream)
         };
 
         wrap!((), res)
@@ -166,9 +159,7 @@ impl DeviceMemory {
 
 impl Drop for DeviceMemory {
     fn drop(&mut self) {
-        unsafe {
-            ffi::cuMemFreeAsync(self.ptr, self.stream.get_raw())
-        };
+        unsafe { ffi::cuMemFreeAsync(self.ptr, self.stream.get_raw()) };
     }
 }
 
@@ -213,8 +204,7 @@ impl PitchedDeviceMemory {
         }
 
         let res = unsafe {
-            let stream = stream
-                .map_or(self.memory.stream.get_raw(), |s| s.get_raw());
+            let stream = stream.map_or(self.memory.stream.get_raw(), |s| s.get_raw());
             let mut params: ffi::CUDA_MEMCPY2D = std::mem::zeroed();
             params.srcMemoryType = ffi::CUmemorytype_enum_CU_MEMORYTYPE_DEVICE;
             params.srcDevice = self.memory.get_raw();
@@ -249,8 +239,7 @@ impl PitchedDeviceMemory {
         }
 
         let res = unsafe {
-            let stream = stream
-                .map_or(self.memory.stream.get_raw(), |s| s.get_raw());
+            let stream = stream.map_or(self.memory.stream.get_raw(), |s| s.get_raw());
             let mut params: ffi::CUDA_MEMCPY2D = std::mem::zeroed();
             if is_src_host {
                 params.srcMemoryType = ffi::CUmemorytype_enum_CU_MEMORYTYPE_HOST;
@@ -279,7 +268,7 @@ impl PitchedDeviceMemory {
             dst.width,
             dst.height,
             false,
-            stream
+            stream,
         )
     }
 
@@ -288,9 +277,7 @@ impl PitchedDeviceMemory {
     }
 
     pub fn try_clone(&self) -> CuResult<Self> {
-        let mut dst = Self::new(
-            self.width, self.height, &self.memory.stream
-        )?;
+        let mut dst = Self::new(self.width, self.height, &self.memory.stream)?;
         self.copy_to(&mut dst, None)?;
 
         Ok(dst)
@@ -323,7 +310,7 @@ fn align_up(x: usize, align: usize) -> usize {
     assert!(align.is_power_of_two(), "`align` must be a power of two");
     let align_mask = align - 1;
     if x & align_mask == 0 {
-        x   // already aligned
+        x // already aligned
     } else if let Some(aligned) = (x | align_mask).checked_add(1) {
         aligned
     } else {

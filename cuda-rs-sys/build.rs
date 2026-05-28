@@ -21,7 +21,8 @@ fn main() {
     let cuda_include = find_dir(
         "CUDA_INCLUDE_PATH",
         vec!["/opt/cuda/include", "/usr/local/cuda/include"],
-    ).expect("Could not find CUDA include path");
+    )
+    .expect("Could not find CUDA include path");
 
     println!("cargo:rustc-link-lib=dylib=cuda");
 
