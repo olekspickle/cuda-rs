@@ -59,7 +59,7 @@ impl CuEvent {
             let start_e = start.get_raw();
             let end_e = self.get_raw();
 
-            ffi::cuEventElapsedTime(&mut ms as *mut f32, start_e, end_e)
+            ffi::cuEventElapsedTime_v2(&mut ms as *mut f32, start_e, end_e)
         };
 
         wrap!(ms, res)
