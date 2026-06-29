@@ -58,9 +58,9 @@ impl CuEvent {
         let res = unsafe {
             let start_e = start.get_raw();
             let end_e = self.get_raw();
-            #[cfg(feature = "cuda_13")]
+            #[cfg(cuda_13)]
             let ret = ffi::cuEventElapsedTime_v2(&mut ms as *mut f32, start_e, end_e);
-            #[cfg(not(feature = "cuda_13"))]
+            #[cfg(not(cuda_13))]
             let ret = ffi::cuEventElapsedTime(&mut ms as *mut f32, start_e, end_e);
             ret
         };

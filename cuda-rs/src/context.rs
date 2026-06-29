@@ -19,12 +19,12 @@ pub struct CuContext(Inner);
 impl CuContext {
     pub fn new(device: &CuDevice) -> CuResult<Self> {
         let mut ctx = std::ptr::null_mut();
-        #[cfg(feature = "cuda_13")]
+        #[cfg(cuda_13)]
         let res = unsafe {
             let mut params = std::mem::zeroed::<ffi::CUctxCreateParams>();
             ffi::cuCtxCreate_v4(&mut ctx, &mut params, 0, device.get_raw())
         };
-        #[cfg(not(feature = "cuda_13"))]
+        #[cfg(not(cuda_13))]
         let res = unsafe { ffi::cuCtxCreate_v2(&mut ctx, 0, device.get_raw()) };
         let ctx = CuContext(Inner::Owned(Arc::new(CUcontext(ctx))));
 
