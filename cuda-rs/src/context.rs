@@ -20,8 +20,8 @@ impl CuContext {
     pub fn new(device: &CuDevice) -> CuResult<Self> {
         let mut ctx = std::ptr::null_mut();
         // CUDA 13 requires non-null CUctxCreateParams; zero-init gives default behavior
-        let params = unsafe { std::mem::zeroed::<ffi::CUctxCreateParams>() };
-        let res = unsafe { ffi::cuCtxCreate_v4(&mut ctx, &params, 0, device.get_raw()) };
+        let mut params = unsafe { std::mem::zeroed::<ffi::CUctxCreateParams>() };
+        let res = unsafe { ffi::cuCtxCreate_v4(&mut ctx, &mut params, 0, device.get_raw()) };
         let ctx = CuContext(Inner::Owned(Arc::new(CUcontext(ctx))));
 
         wrap!(ctx, res)
