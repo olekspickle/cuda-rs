@@ -1,7 +1,10 @@
 #[macro_use]
 extern crate enum_primitive;
 
-extern crate cuda_rs_sys as ffi;
+// Public so downstream crates (e.g. tensorrt-rs) needing raw driver-API
+// calls (CUDA graph capture, etc.) go through *this* crate's cuda-rs-sys
+// instead of declaring their own separate dependency on it.
+pub extern crate cuda_rs_sys as ffi;
 
 #[macro_use]
 mod macros;
